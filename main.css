@@ -1,0 +1,24 @@
+body {
+  background-image: url(background.jpg);
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: cover;
+}
+
+table{
+  display: block;
+  overflow: auto;
+  font-size: 12px;
+}
+
+td{
+  white-space: nowrap;
+  align-content: center;
+}
+
+#main {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+}

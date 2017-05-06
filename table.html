@@ -1,0 +1,59 @@
+<!DOCTYPE HTML>
+
+<html>
+
+    <head>
+        <meta charset="utf-8">
+        <title> Pipeline </title>
+        <script src="pipeline.js"></script>
+        <link rel="stylesheet" href="main.css">
+        <link href="css/bootstrap.min.css" rel="stylesheet" />
+        <link href="css/bootstrap-theme.min.css" rel="stylesheet" />
+    </head>
+
+    <body>
+        <div id="main">
+            <div id="inputField" align="center">
+                <h1> Multiplication </h1>
+                
+                <form class="form-inline">
+                    <div class="form-group">
+                        <label for="firstArray">A =</label>
+                        <input type="text" class="form-control" id="firstArray" placeholder="First array">
+                    </div>
+                    <div class="form-group">
+                        <label for="secondArray">B =</label>
+                        <input type="text" class="form-control" id="secondArray" placeholder="Second array">
+                    </div>
+                </form>
+
+                <form class="form-inline">
+                <div class="form-group">
+                    <label for="arraySize">M =</label>
+                    <input type="number" min = "1" step = "1" class="form-control" id="arraySize" placeholder="Number of elements">
+                </div>
+                <div class="form-group">
+                    <label for="time">T =</label>
+                    <input type="number" min = "1" step = "1" class="form-control" id="time" placeholder="Time per iteration">
+                </div>
+                </form>
+
+                <button type="button" class="btn btn-success" OnClick="processData();">
+                    Multiply
+                </button>
+                <button type="button" class="btn btn-danger" OnClick="removeTable(); resetInput();">
+                    Reset
+                </button>
+
+                <h4>
+                    <div id="result"><b></b></div>
+                </h4>
+                    
+            </div>
+
+            <table id="table" border="3" align="center" cellpadding="5" class="table"></table>
+
+        </div>
+    </body>
+
+</html>
