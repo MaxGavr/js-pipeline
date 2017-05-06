@@ -8,16 +8,16 @@ function BinaryNumber(value = 0, capacity = defaultBitCapacity){
     var number = value;
     var bitCapacity = capacity;
 
-    this.getString = function(){
+    this.getString = function(neededCapacity = bitCapacity){
         var valueString = number.toString(2);
-        while (valueString.length < bitCapacity){
+        while (valueString.length < neededCapacity){
             valueString = "0" + valueString;
         }
         return valueString;
     }
 
-    this.getFormattedString = function(){
-        var str = this.getString();
+    this.getFormattedString = function(neededCapacity = bitCapacity){
+        var str = this.getString(neededCapacity);
         return str.match(/.{1,4}/g).join("-");
     }
 
@@ -57,7 +57,7 @@ function Pipeline(timePerIteration){
     }
 
     this.push = function(firstBinaryNumber, secondBinaryNumber){
-        var newItem = new PipelineItem(firstBinaryNumber, secondBinaryNumber, currentTime);
+        var newItem = new PipelineItem(firstBinaryNumber, secondBinaryNumber);
         itemsArray.push(newItem);
         this.processItems();
     }
@@ -81,6 +81,7 @@ function Pipeline(timePerIteration){
     }
 
     this.processItems = function(){
+        this.elapseTime();
         for (var itemIndex = 0; itemIndex < itemsArray.length; itemIndex++){
             var item = itemsArray[itemIndex];
             if (!item.finished()){
@@ -93,11 +94,18 @@ function Pipeline(timePerIteration){
                     this.multiply(item);
                 }
 
-                item.writeHistory(currentTime);
+                item.writeHistory();
                 item.setStage(item.getStage() + 1);
             }
-        }
+        }   
+    }
+
+    this.elapseTime = function(){
         currentTime += timePerIteration;
+    }
+
+    this.getElapsedTime = function(){
+        return currentTime;
     }
 
     this.gatherResult = function(){
@@ -124,7 +132,7 @@ function Pipeline(timePerIteration){
     }
 }
 
-function PipelineItem(firstBinaryNumber, secondBinaryNumber, initTime){
+function PipelineItem(firstBinaryNumber, secondBinaryNumber){
     this.first = firstBinaryNumber;
     this.second = secondBinaryNumber;
     this.sum = new BinaryNumber(0, defaultBitCapacity);
@@ -133,16 +141,14 @@ function PipelineItem(firstBinaryNumber, secondBinaryNumber, initTime){
     var done = false;
 
     this.history = {
-        timeStamps: [initTime],
-        sums: [new BinaryNumber(0, defaultBitCapacity).getFormattedString()],
+        sums: [new BinaryNumber(0, defaultBitCapacity).getFormattedString(defaultBitCapacity*2)],
         firstNumber: this.first,
         secondNumber: this.second,
         bit: ["0"]
     };
 
-    this.writeHistory = function(currentTime){
-        this.history.timeStamps.push(currentTime);
-        this.history.sums.push(this.sum.getFormattedString());
+    this.writeHistory = function(){
+        this.history.sums.push(this.sum.getFormattedString(defaultBitCapacity*2));
         this.history.bit.push(this.getCurrentBit());
     }
 
@@ -180,7 +186,7 @@ function processData(){
         pipeline.run();
     }
     printResultingArray(pipeline.gatherResult());
-    printTable(pipeline.getItemsHistory());
+    printTable(pipeline.getItemsHistory(), pipeline.getElapsedTime());
     return pipeline.getItemsHistory();
 }
 
@@ -246,7 +252,7 @@ function printResultingArray(result){
     document.getElementById("result").innerHTML = outputString;
 }
 
-function printTable(stateArray){
+function printTable(stateArray, elapsedTime){
     if (tablePrinted){
         removeTable();
     }
@@ -257,19 +263,19 @@ function printTable(stateArray){
     currentRow = table.insertRow();
     for (var titleColumn = 0; titleColumn < 1 + pipelineStages + 1; titleColumn++){
         currentCell = currentRow.insertCell(titleColumn);
-        var output = "";
+        var title = "";
         if (titleColumn == 0){
-            output = "Pair";
+            title = "Pair";
         }
         else if (titleColumn == (pipelineStages + 1))
-            output = "Output";
+            title = "Output";
         else if ((titleColumn - 1) % 2 == 0)
-                output = "Shift";
+                title = "Shift";
         else{
             var bit = Math.floor((pipelineStages - titleColumn) / 2);
-            output = "Multiplication A*B[" + bit + ']</br>' + "and addition";
+            title = "Multiplication A*B[" + bit + ']</br>' + "and addition";
         }
-        currentCell.innerHTML = "<b>" + output + "</b>";
+        currentCell.innerHTML = "<b>" + title + "</b>";
     }
 
 	for (var row = 0 ; row < size + pipelineStages; row++) {
@@ -280,36 +286,37 @@ function printTable(stateArray){
                 var A = stateArray[pair].firstNumber;
                 var B = stateArray[pair].secondNumber;
                 var sum = stateArray[pair].sums[column];
-                var time = stateArray[pair].timeStamps[column];
                 var bit = stateArray[pair].bit[column];
 
                 // result
                 if ((row == pair + pipelineStages) && (column == pipelineStages + 1)) {
-                    var result = new BinaryNumber().toDecimal(stateArray[pair].sums[column - 1]);
-                    var time = stateArray[pair].timeStamps[column - 1];
+                    var result = new BinaryNumber().toDecimal(stateArray[pair].sums[column - 1])
                     currentCell.innerHTML = "A: " + A.getFormattedString() + '</br>' +
                                             "B: " + B.getFormattedString() + '</br>' + 
-                                            "Result: " + result  + '</br>' + "Time: " + time;;
+                                            "Result: " + result  + '</br>';
                 }
                 // multiplication
                 else if ((row == column + pair) && (column % 2 == 0) && column != 0){
                     currentCell.innerHTML = "A: " + A.getFormattedString() + '</br>' +
                                             "B: " + B.getFormattedString() + '</br>' + 
                                             "Bit: " + bit + '</br>' +
-                                            "Sum: " + sum + '</br>' + "Time: " + time;
+                                            "Sum: " + sum + '</br>';
                 }
                 // shift
                 else if ((row == column + pair) && (column % 2 != 0)){
                     currentCell.innerHTML = "A: " + A.getFormattedString() + '</br>' +
                                             "B: " + B.getFormattedString() + '</br>' + 
-                                            "Sum: " + sum  + '</br>' + "Time: " + time;
+                                            "Sum: " + sum  + '</br>';
                 }
                 // initial pairs
                 else if ((row == pair + 1) && column == 0) {
                     currentCell.innerHTML = "A: " + A.getDecimal() + '</br>' +
                                             "B: " + B.getDecimal() + '</br>' + 
-                                            "Initial sum: " + sum  + '</br>' + "Time: " + time;
+                                            "Initial sum: " + sum  + '</br>';
                 }
+            }
+            if (column == 0 && row >= 1){
+                currentCell.innerHTML += "Time:" + row;
             }
         }
     }
