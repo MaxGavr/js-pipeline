@@ -12,7 +12,7 @@ table{
   font-size: 12px;
 }
 
-td{
+th, td{
   white-space: nowrap;
   align-content: center;
 }

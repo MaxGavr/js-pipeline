@@ -293,7 +293,7 @@ function printTable(stateArray, elapsedTime){
                     var result = new BinaryNumber().toDecimal(stateArray[pair].sums[column - 1])
                     currentCell.innerHTML = "A: " + A.getFormattedString() + '</br>' +
                                             "B: " + B.getFormattedString() + '</br>' + 
-                                            "Result: " + result  + '</br>';
+                                            "<b>" + "Result: " + result  + '</b></br>';
                 }
                 // multiplication
                 else if ((row == column + pair) && (column % 2 == 0) && column != 0){
@@ -312,10 +312,10 @@ function printTable(stateArray, elapsedTime){
                 else if ((row == pair + 1) && column == 0) {
                     currentCell.innerHTML = "A: " + A.getDecimal() + '</br>' +
                                             "B: " + B.getDecimal() + '</br>' + 
-                                            "Initial sum: " + sum  + '</br>';
+                                            "Sum: " + sum  + '</br>';
                 }
             }
-            if (column == 0 && row >= 1){
+            if ((column == 0  || column == pipelineStages + 1)&& row >= 1){
                 currentCell.innerHTML += "Time:" + row;
             }
         }
