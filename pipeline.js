@@ -2,7 +2,6 @@
 
 const defaultBitCapacity = 8;
 const pipelineStages = 16;
-var tablePrinted = false;
 
 function BinaryNumber(value = 0, capacity = defaultBitCapacity){
     var number = value;
@@ -173,10 +172,8 @@ function PipelineItem(firstBinaryNumber, secondBinaryNumber){
 }
 
 function processData(){
-    if (tablePrinted){
-        removeTable();
-        document.getElementById("result").innerHTML = "";
-    }
+    removeTable();
+
     var data = getInput();
     var pipeline = new Pipeline(data.timePerIteration);
     for (var pair = 0; pair < data.firstArray.length; pair++){
@@ -187,63 +184,62 @@ function processData(){
     }
     printResultingArray(pipeline.gatherResult());
     printTable(pipeline.getItemsHistory(), pipeline.getElapsedTime());
-    return pipeline.getItemsHistory();
 }
 
 function getInput() {
+
+    function inputException(message){
+        var outputString = '<b>' + message + '</b>';
+        document.getElementById('result').innerHTML = outputString;
+    }
+
+    function getIterationTime(){
+        var time = parseInt(document.getElementById("time").value);
+        if (time < 1 || !Number.isInteger(time)) 
+            throw new inputException("Time per iteration should be a positive number!");
+        return time;
+    }
+
+    function getArraySize() {
+        var size = parseInt(document.getElementById("arraySize").value);
+        if (size < 1 || !Number.isInteger(size)) 
+            throw new inputException("Size of an array should be a positive number!");
+        return size;
+    }
+
+    function getInputNumbers(id){
+        var inputString = document.getElementById(id).value;
+        var elements = inputString.replace(/\s+/g, '').split(',');
+        
+        if (elements.length != getArraySize()) 
+            throw new inputException("Size incompatibility!");
+
+        var numbers = [];
+        for (var index = 0; index < elements.length; index++){
+            var element = elements[index];
+
+            if (element.length < 1 || !Number.isInteger(+element))
+                throw new inputException("Input contains incorrect elements!");        
+            if (+element < 0)
+                throw new inputException("Input contains negative numbers!");
+
+            var number = new BinaryNumber(parseInt(element), defaultBitCapacity);
+            if (!number.correctMaxValue()){
+                throw new inputException("Input contains too big number!");
+            }
+
+            numbers.push(number);
+        }
+        return numbers;
+    }
+
     var inputData = {
         firstArray: getInputNumbers("firstArray"),
         secondArray: getInputNumbers("secondArray"),
-        sizeOfTheArray: getArraySize(),
+        sizeOfArray: getArraySize(),
         timePerIteration: getIterationTime()
     };
     return inputData;
-}
-
-function getArraySize() {
-    var size = document.getElementById("arraySize").value ;
-    if (+size < 1 || !Number.isInteger(+size)) 
-        throw new inputException("Size of an array should be a positive number!");
-    return parseInt(size);
-}
-
-function getIterationTime(){
-    var time = document.getElementById("time").value;
-    if (+time < 1 || !Number.isInteger(+time)) 
-        throw new inputException("Time per iteration should be a positive number!");
-    return parseInt(time);
-}
-
-function getInputNumbers(id){
-    var inputString = document.getElementById(id).value;
-    var elements = inputString.replace(/\s+/g, '').split(',');
-    
-    if (elements.length != getArraySize()) 
-        throw new inputException("Size incompatibility!");
-
-    var numbers = [];
-    var output =[];
-    for (var index = 0; index < elements.length; index++){
-        var element = elements[index];
-
-        if (element.length < 1 || !Number.isInteger(+element))
-            throw new inputException("Input contains incorrect elements!");        
-        if (+element < 0)
-            throw new inputException("Input contains negative numbers!");
-
-        var number = new BinaryNumber(parseInt(element), defaultBitCapacity);
-        if (!number.correctMaxValue()){
-            throw new inputException("Input contains too big number!");
-        }
-
-        numbers.push(number);
-    }
-    return numbers;
-}
-
-function inputException(message){
-    var outputString = '<b>' + message + '</b>';
-    document.getElementById('result').innerHTML = outputString;
 }
 
 function printResultingArray(result){
@@ -253,12 +249,9 @@ function printResultingArray(result){
 }
 
 function printTable(stateArray, elapsedTime){
-    if (tablePrinted){
-        removeTable();
-    }
 	var table = document.getElementById('table');
 	var currentRow, currentCell;
-    var size = getArraySize();
+    var size = stateArray.length;
 
     currentRow = table.insertRow();
     for (var titleColumn = 0; titleColumn < 1 + pipelineStages + 1; titleColumn++){
@@ -310,29 +303,19 @@ function printTable(stateArray, elapsedTime){
                 }
                 // initial pairs
                 else if ((row == pair + 1) && column == 0) {
-                    currentCell.innerHTML = "A: " + A.getDecimal() + '</br>' +
-                                            "B: " + B.getDecimal() + '</br>' + 
+                    currentCell.innerHTML = "<b>" + "A: " + A.getDecimal() + "</b>" + '</br>' +
+                                            "<b>" + "B: " + B.getDecimal() + "</b>" + '</br>' + 
                                             "Sum: " + sum  + '</br>';
                 }
             }
-            if ((column == 0  || column == pipelineStages + 1)&& row >= 1){
-                currentCell.innerHTML += "Time:" + row;
+            if ((column == 0  || column == pipelineStages + 1) && row >= 1){
+                currentCell.innerHTML += "<b>" + "Time:" + row + "</b>";
             }
         }
     }
-    tablePrinted = true;
 }
 
 function removeTable(){
-    var table = document.getElementById('table');
-    table.innerHTML = "";
-    tablePrinted = false;
-}
-
-function resetInput(){
-    document.getElementById('result').innerHTML = '';
-    document.getElementById("firstArray").value = "";
-    document.getElementById("secondArray").value = "";
-    document.getElementById("arraySize").value = "";
-    document.getElementById("time").value = "";
+    document.getElementById("table").innerHTML = "";
+    document.getElementById("result").innerHTML = "";
 }
